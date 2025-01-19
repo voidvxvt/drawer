@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ -z "$1" ];
+then
+	echo "usage: ntlmssp2hashcat pcapngfile"
+	exit 1
+else
+	pcapngfile=$1
+
+	Domain=$(tshark -r $pcapngfile -T fields -Y 'ntlmssp.auth.domain' -e 'ntlmssp.auth.domain')
+	Username=$(tshark -r $pcapngfile -T fields -Y 'ntlmssp.auth.username' -e 'ntlmssp.auth.username')
+	NTProofStr=$(tshark -r $pcapngfile -T fields -Y 'ntlmssp.ntlmv2_response.ntproofstr' -e 'ntlmssp.ntlmv2_response.ntproofstr')
+	NTLMv2Response=$(tshark -r $pcapngfile -T fields -Y 'ntlmssp.ntlmv2_response' -e 'ntlmssp.ntlmv2_response')
+	NTLMServerChallenge=$(tshark -r $pcapngfile -T fields -Y 'ntlmssp.ntlmserverchallenge' -e 'ntlmssp.ntlmserverchallenge')
+
+	NTLMv2Response=${NTLMv2Response:32}
+
+	echo "$Username::$Domain:$NTLMServerChallenge:$NTProofStr:$NTLMv2Response"
+fi
